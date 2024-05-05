@@ -6,10 +6,17 @@
 #define TC_PRESCALER TC_CMR_TCCLKS_TIMER_CLOCK1
 // Définition du nombre de ticks par interruption
 #define TC_TICKS (F_CPU / TC_FREQUENCY)
+#define SAMPLING_FREQUENCY 32000 //fréquence d'échantillonage
+const int SAMPLING_PERIOD = 1000000 / SAMPLING_FREQ; //periode d'échantillonnage
+
+volatile bool flag_echantillon=false;
+volatile int echantillon;
 // Définition de la fonction d'interruption
 void TC0_Handler(void) {
   // Réinitialisation du registre STATUS pour indiquer la fin de l'interruption
   TC_GetStatus(TC0, 0);
+  echantillon = analogRead(A0);
+  flag_echantillon=true;
   // Code à exécuter lors de l'interruption
 }
 
@@ -33,8 +40,13 @@ void ADC_setup() {
 void setup() {
   // put your setup code here, to run once:
   ADC_setup();
+  Serial.begin(115200);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  if(flag_echantillon){
+    Serial.println(echantillon);
+    flag_echantillon=false;
+  }
 }
